@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sous l'Œil de Mélusine — Convention JDR Poitiers</title>
+    <meta name="description" content="Convention de jeu de rôle à Poitiers — 16 & 17 mai 2026. Organisée par La Guilde, section JDR du Foyer du Porteau. Entrée gratuite.">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    
+    <!-- PapaParse for Google Sheets CSV parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        /* ============================================
+           CSS VARIABLES — PALETTE MÉLUSINE
+           ============================================ */
+        :root {
+            --teal: #2E8B8B;
+            --teal-dark: #1A5C5C;
+            --teal-deep: #0F3D3D;
+            --dark-teal: #0D2B2B;
+            --orange: #E07A30;
+            --orange-light: #F2994A;
+            --red: #B8293A;
+            --green: #4A8B5E;
+            --gold: #D4A843;
+            --cream: #FDF8F0;
+            --parchment: #F5EDE0;
+            --dark: #1A1A2E;
+            --dark-card: #22223A;
+            --text-muted: #7A9999;
+            --text-light: #BCC8C8;
+            --text-on-light: #4A4A4A;
+            
+            --font-display: 'Cinzel Decorative', 'Cinzel', serif;
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Lora', serif;
+            
+            --transition: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 80px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--dark);
+            color: var(--cream);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        a {
+            color: var(--gold);
+            text-decoration: none;
+            transition: color var(--transition);
+        }
+
+        a:hover {
+            color: var(--orange);
+        }
+
+        /* ============================================
+           LOADING STATE
+           ============================================ */
+        .loading-shimmer {
+            background: linear-gradient(90deg, var(--dark-card) 25%, #2a2a4a 50%, var(--dark-card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            min-height: 20px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(45deg); }
+            50% { transform: translateY(-10px) rotate(45deg); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(224, 122, 48, 0.3); }
+            50% { box-shadow: 0 0 35px rgba(224, 122, 48, 0.5); }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: linear-gradient(180deg, rgba(13, 43, 43, 0.95), rgba(15, 61, 61, 0.9));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(46, 139, 139, 0.15);
+            transition: all var(--transition);
+        }
+
+        .nav.scrolled {
+            background: rgba(13, 43, 43, 0.98);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-brand img {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+        }
+
+        .nav-brand span {
+            font-family: var(--font-display);
+            font-size: 17px;
+            color: var(--gold);
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--cream);
+            padding: 8px 14px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--gold);
+            background: rgba(212, 168, 67, 0.08);
+        }
+
+        .nav-links a.active::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 1px;
+        }
+
+        /* Mobile menu */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 24px;
+            height: 2px;
+            background: var(--cream);
+            margin: 5px 0;
+            transition: all var(--transition);
+            border-radius: 2px;
+        }
+
+        .nav-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .nav-toggle.open span:nth-child(2) { opacity: 0; }
+        .nav-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+        @media (max-width: 768px) {
+            .nav-toggle { display: block; }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                right: 0;
+                flex-direction: column;
+                background: rgba(13, 43, 43, 0.98);
+                padding: 16px 24px;
+                border-bottom: 1px solid rgba(46, 139, 139, 0.15);
+            }
+            .nav-links.open { display: flex; }
+            .nav-links a { padding: 12px 14px; }
+        }
+
+        /* ============================================
+           HERO SECTION
+           ============================================ */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 120px 24px 80px;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse at 30% 20%, rgba(46, 139, 139, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 80%, rgba(212, 168, 67, 0.05) 0%, transparent 60%),
+                linear-gradient(135deg, var(--dark-teal) 0%, var(--dark) 50%, var(--teal-deep) 100%);
+            z-index: 0;
+        }
+
+        /* Background image layer */
+        .hero-bg-image {
+            position: absolute;
+            inset: 0;
+            background-image: var(--hero-bg-url);
+            background-size: cover;
+            background-position: center;
+            opacity: 0.25;
+            z-index: 0;
+        }
+
+        .hero-bg-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(13, 43, 43, 0.85) 0%, rgba(26, 26, 46, 0.9) 50%, rgba(15, 61, 61, 0.85) 100%);
+            z-index: 1;
+        }
+
+        /* Decorative elements */
+        .hero-decor {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .hero-decor-1 {
+            width: 600px; height: 600px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-color: rgba(46, 139, 139, 0.08);
+        }
+
+        .hero-decor-2 {
+            width: 400px; height: 400px;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border-color: rgba(212, 168, 67, 0.06);
+        }
+
+        .hero-diamond {
+            position: absolute;
+            width: 10px; height: 10px;
+            transform: rotate(45deg);
+            pointer-events: none;
+            z-index: 2;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .hero-diamond-1 { top: 15%; left: 10%; background: var(--teal); opacity: 0.25; animation-delay: 0s; }
+        .hero-diamond-2 { bottom: 20%; right: 12%; background: var(--orange); opacity: 0.3; animation-delay: 1s; width: 8px; height: 8px; }
+        .hero-diamond-3 { top: 25%; right: 18%; background: var(--gold); opacity: 0.2; animation-delay: 2s; width: 6px; height: 6px; }
+        .hero-diamond-4 { bottom: 30%; left: 15%; background: var(--green); opacity: 0.2; animation-delay: 1.5s; width: 7px; height: 7px; }
+
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            max-width: 700px;
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 24px;
+            animation: fadeInUp 0.8s ease both;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 6vw, 3.8rem);
+            color: var(--cream);
+            line-height: 1.15;
+            margin-bottom: 8px;
+            animation: fadeInUp 0.8s ease 0.15s both;
+        }
+
+        .hero-title .accent {
+            color: var(--gold);
+            display: block;
+        }
+
+        .hero-separator {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+            margin: 28px auto;
+            animation: fadeIn 0.8s ease 0.3s both;
+        }
+
+        .hero-date {
+            font-family: var(--font-heading);
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
+            font-weight: 600;
+            color: var(--cream);
+            margin-bottom: 10px;
+            animation: fadeInUp 0.8s ease 0.35s both;
+        }
+
+        .hero-info {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            animation: fadeInUp 0.8s ease 0.45s both;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeInUp 0.8s ease 0.55s both;
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            letter-spacing: 1px;
+            padding: 14px 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            border: 1.5px solid transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--orange), var(--orange-light));
+            color: #fff;
+            border-color: var(--orange);
+            box-shadow: 0 4px 20px rgba(224, 122, 48, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(224, 122, 48, 0.4);
+            color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--cream);
+            border-color: rgba(46, 139, 139, 0.5);
+        }
+
+        .btn-outline:hover {
+            background: rgba(46, 139, 139, 0.1);
+            border-color: var(--teal);
+            color: var(--cream);
+            transform: translateY(-2px);
+        }
+
+        /* ============================================
+           SECTION BASE
+           ============================================ */
+        .section {
+            padding: 80px 24px;
+        }
+
+        .section-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-label {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            margin-bottom: 16px;
+        }
+
+        .section-sep {
+            width: 40px;
+            height: 2px;
+            background: var(--orange);
+            margin: 0 auto;
+        }
+
+        /* ============================================
+           CARDS SECTION (Programme, Restauration, Animations)
+           ============================================ */
+        .section-dark {
+            background: var(--dark);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: var(--dark-card);
+            border-radius: 16px;
+            padding: 36px 28px;
+            text-align: center;
+            border: 1px solid rgba(46, 139, 139, 0.1);
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--card-accent, var(--teal)), transparent);
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            color: var(--cream);
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .card-text {
+            font-size: 15px;
+            color: var(--text-light);
+            line-height: 1.7;
+            margin-bottom: 24px;
+        }
+
+        .card-btn {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            letter-spacing: 1px;
+            padding: 10px 24px;
+            border-radius: 8px;
+            border: 1.5px solid var(--card-accent, var(--teal));
+            background: transparent;
+            color: var(--card-accent, var(--teal));
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .card-btn:hover {
+            background: var(--card-accent, var(--teal));
+            color: var(--dark);
+        }
+
+        /* ============================================
+           LIGHT SECTION (Bienvenue / Infos)
+           ============================================ */
+        .section-light {
+            background: var(--parchment);
+            color: var(--text-on-light);
+        }
+
+        .section-light .section-title {
+            color: var(--teal-dark);
+        }
+
+        .section-light .section-label {
+            color: var(--teal-dark);
+        }
+
+        .welcome-text {
+            font-size: 17px;
+            line-height: 1.8;
+            max-width: 700px;
+            margin: 0 auto 48px;
+            text-align: center;
+            color: var(--text-on-light);
+        }
+
+        .welcome-text strong {
+            color: var(--teal-dark);
+        }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+        }
+
+        .info-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 28px 24px;
+            text-align: center;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(46, 139, 139, 0.1);
+            transition: all var(--transition);
+        }
+
+        .info-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-card-icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+
+        .info-card-label {
+            font-family: var(--font-heading);
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--teal-dark);
+            margin-bottom: 8px;
+        }
+
+        .info-card-value {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           PROGRAMME SECTION
+           ============================================ */
+        .programme-grid {
+            display: grid;
+            gap: 16px;
+        }
+
+        .creneau {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            border: 1px solid rgba(46, 139, 139, 0.08);
+            transition: all var(--transition);
+        }
+
+        .creneau:hover {
+            border-color: rgba(46, 139, 139, 0.2);
+            transform: translateX(4px);
+        }
+
+        .creneau-time {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            color: var(--gold);
+            text-align: center;
+            min-width: 90px;
+            padding: 8px 12px;
+            background: rgba(212, 168, 67, 0.08);
+            border-radius: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .creneau-info h4 {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: var(--cream);
+            margin-bottom: 4px;
+        }
+
+        .creneau-info .mj {
+            font-size: 14px;
+            color: var(--teal);
+            margin-bottom: 4px;
+        }
+
+        .creneau-info .desc {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .creneau-places {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            letter-spacing: 1px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .creneau-places.disponible {
+            background: rgba(74, 139, 94, 0.15);
+            color: var(--green);
+            border: 1px solid rgba(74, 139, 94, 0.3);
+        }
+
+        .creneau-places.complet {
+            background: rgba(184, 41, 58, 0.15);
+            color: var(--red);
+            border: 1px solid rgba(184, 41, 58, 0.3);
+        }
+
+        /* Tabs for creneaux */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(46, 139, 139, 0.2);
+            background: transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .tab:hover, .tab.active {
+            background: rgba(46, 139, 139, 0.15);
+            color: var(--teal);
+            border-color: var(--teal);
+        }
+
+        @media (max-width: 768px) {
+            .creneau {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .creneau-time { min-width: auto; }
+        }
+
+        /* ============================================
+           RESTAURATION SECTION
+           ============================================ */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-item {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid rgba(224, 122, 48, 0.08);
+            transition: all var(--transition);
+        }
+
+        .menu-item:hover {
+            border-color: rgba(224, 122, 48, 0.2);
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .menu-item-name {
+            font-family: var(--font-heading);
+            font-size: 16px;
+            color: var(--cream);
+        }
+
+        .menu-item-price {
+            font-family: var(--font-heading);
+            font-size: 15px;
+            color: var(--orange);
+            white-space: nowrap;
+            margin-left: 12px;
+        }
+
+        .menu-item-desc {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .menu-item-category {
+            font-family: var(--font-heading);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--orange);
+            background: rgba(224, 122, 48, 0.1);
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        /* ============================================
+           ANIMATIONS SECTION
+           ============================================ */
+        .animation-card {
+            background: var(--dark-card);
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid rgba(74, 139, 94, 0.08);
+            transition: all var(--transition);
+            margin-bottom: 16px;
+        }
+
+        .animation-card:hover {
+            border-color: rgba(74, 139, 94, 0.2);
+        }
+
+        .animation-card h4 {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            color: var(--cream);
+            margin-bottom: 6px;
+        }
+
+        .animation-card .anim-time {
+            font-size: 13px;
+            color: var(--green);
+            margin-bottom: 10px;
+        }
+
+        .animation-card .anim-desc {
+            font-size: 15px;
+            color: var(--text-light);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            background: var(--dark-teal);
+            border-top: 1px solid rgba(46, 139, 139, 0.1);
+            padding: 36px 24px;
+        }
+
+        .footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 15px;
+            color: var(--gold);
+        }
+
+        .footer-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            font-family: var(--font-body);
+        }
+
+        .footer-right {
+            font-size: 13px;
+            color: rgba(122, 153, 153, 0.6);
+        }
+
+        /* ============================================
+           SCROLL TO TOP
+           ============================================ */
+        .scroll-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(--teal-dark);
+            border: 1px solid rgba(46, 139, 139, 0.3);
+            color: var(--cream);
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all var(--transition);
+            z-index: 999;
+        }
+
+        .scroll-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .scroll-top:hover {
+            background: var(--teal);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 600px) {
+            .hero { padding: 100px 20px 60px; min-height: 90vh; }
+            .section { padding: 60px 20px; }
+            .hero-title { font-size: 2rem; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .btn { width: 100%; justify-content: center; max-width: 280px; }
+            .cards-grid { grid-template-columns: 1fr; }
+            .footer-inner { flex-direction: column; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVIGATION ========== -->
+    <nav class="nav" id="nav">
+        <div class="nav-inner">
+            <a href="#accueil" class="nav-brand">
+                <img src="https://sousloeildemelusine.fr/wp-content/uploads/2023/02/cropped-cropped-logo_guilde.png" alt="Logo Mélusine" onerror="this.style.display='none'">
+                <span>Mélusine</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#accueil" class="active">Accueil</a></li>
+                <li><a href="#programme">Programme</a></li>
+                <li><a href="#animations">Animations</a></li>
+                <li><a href="#restauration">Restauration</a></li>
+                <li><a href="#infos">Infos</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ========== HERO ========== -->
+    <section class="hero" id="accueil">
+        <div class="hero-bg"></div>
+        <div class="hero-bg-image" id="heroBgImage"></div>
+        <div class="hero-bg-overlay"></div>
+        <div class="hero-decor hero-decor-1"></div>
+        <div class="hero-decor hero-decor-2"></div>
+        <div class="hero-diamond hero-diamond-1"></div>
+        <div class="hero-diamond hero-diamond-2"></div>
+        <div class="hero-diamond hero-diamond-3"></div>
+        <div class="hero-diamond hero-diamond-4"></div>
+        <div class="hero-content">
+            <p class="hero-subtitle" id="heroSubtitle">Convention de Jeu de Rôle</p>
+            <h1 class="hero-title">
+                Sous l'Œil de
+                <span class="accent" id="heroTitleAccent">Mélusine</span>
+            </h1>
+            <div class="hero-separator"></div>
+            <p class="hero-date" id="heroDate">16 & 17 mai 2026 — Poitiers</p>
+            <p class="hero-info" id="heroInfo">Salle Gérard Gaschet · Du samedi 10h au dimanche 16h · Entrée gratuite</p>
+            <div class="hero-buttons">
+                <a href="#inscriptions" class="btn btn-primary" id="heroBtnPrimary">S'inscrire</a>
+                <a href="#programme" class="btn btn-outline">Voir le programme</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== NAVIGATION CARDS ========== -->
+    <section class="section section-dark" id="sections">
+        <div class="section-inner">
+            <div class="cards-grid" id="navCards">
+                <div class="card animate-on-scroll" style="--card-accent: var(--teal)">
+                    <span class="card-icon">🎲</span>
+                    <h3 class="card-title">Programme</h3>
+                    <p class="card-text">Des créneaux de jeux programmés tout le week-end, avec possibilité de rejoindre en cours de partie.</p>
+                    <a href="#programme" class="card-btn">Voir les créneaux</a>
+                </div>
+                <div class="card animate-on-scroll" style="--card-accent: var(--orange)">
+                    <span class="card-icon">🍽️</span>
+                    <h3 class="card-title">Restauration</h3>
+                    <p class="card-text">Buvette et buffet sur place. Repas chaud le samedi soir sur inscription.</p>
+                    <a href="#restauration" class="card-btn" style="border-color: var(--orange); color: var(--orange)">Menu & inscription</a>
+                </div>
+                <div class="card animate-on-scroll" style="--card-accent: var(--green)">
+                    <span class="card-icon">🎭</span>
+                    <h3 class="card-title">Animations</h3>
+                    <p class="card-text">Espace jeux de société, jeu concours et surprises tout le week-end.</p>
+                    <a href="#animations" class="card-btn" style="border-color: var(--green); color: var(--green)">En savoir plus</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== BIENVENUE ========== -->
+    <section class="section section-light" id="infos">
+        <div class="section-inner">
+            <div class="section-header animate-on-scroll">
+                <p class="section-label">Bienvenue</p>
+                <h2 class="section-title" id="welcomeTitle">Bienvenue à toutes et tous</h2>
+                <div class="section-sep"></div>
+            </div>
+            <p class="welcome-text animate-on-scroll" id="welcomeText">
+                Sous l'Œil de Mélusine est organisée par <strong>la Guilde</strong>, section jeu de rôle de l'association du Foyer du Porteau. Que vous soyez joueur·euse aguerri·e ou curieux·euse de découvrir le JDR, vous êtes les bienvenu·es !
+            </p>
+            <div class="info-cards" id="infoCards">
+                <div class="info-card animate-on-scroll">
+                    <div class="info-card-icon">📍</div>
+                    <div class="info-card-label">Lieu</div>
+                    <div class="info-card-value" id="infoLieu">Salle Gérard Gaschet<br>138 rue de la Grange Saint-Pierre<br>Poitiers</div>
+                </div>
+                <div class="info-card animate-on-scroll">
+                    <div class="info-card-icon">📅</div>
+                    <div class="info-card-label">Dates</div>
+                    <div class="info-card-value" id="infoDates">Sam. 16 mai 10h →<br>Dim. 17 mai 16h<br>Sans interruption</div>
+                </div>
+                <div class="info-card animate-on-scroll">
+                    <div class="info-card-icon">🎟️</div>
+                    <div class="info-card-label">Tarif</div>
+                    <div class="info-card-value" id="infoTarif">Entrée gratuite<br>Ouverte à tous</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== PROGRAMME ========== -->
+    <section class="section section-dark" id="programme">
+        <div class="section-inner">
+            <div class="section-header animate-on-scroll">
+                <p class="section-label">Créneaux de jeu</p>
+                <h2 class="section-title">Programme</h2>
+                <div class="section-sep"></div>
+            </div>
+            <div class="tabs" id="programmeTabs"></div>
+            <div class="programme-grid" id="programmeGrid">
+                <div class="loading-shimmer" style="height: 80px;"></div>
+                <div class="loading-shimmer" style="height: 80px;"></div>
+                <div class="loading-shimmer" style="height: 80px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== ANIMATIONS ========== -->
+    <section class="section section-dark" id="animations">
+        <div class="section-inner">
+            <div class="section-header animate-on-scroll">
+                <p class="section-label">Activités</p>
+                <h2 class="section-title">Animations</h2>
+                <div class="section-sep"></div>
+            </div>
+            <div id="animationsGrid">
+                <div class="loading-shimmer" style="height: 80px; margin-bottom: 16px;"></div>
+                <div class="loading-shimmer" style="height: 80px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== RESTAURATION ========== -->
+    <section class="section section-dark" id="restauration">
+        <div class="section-inner">
+            <div class="section-header animate-on-scroll">
+                <p class="section-label">Se restaurer</p>
+                <h2 class="section-title">Restauration</h2>
+                <div class="section-sep"></div>
+            </div>
+            <p class="welcome-text animate-on-scroll" style="color: var(--text-light);" id="restaurationIntro">
+                Buvette et buffet disponibles sur place tout le week-end. Un repas chaud sera proposé le samedi soir — inscription recommandée.
+            </p>
+            <div class="menu-grid" id="menuGrid">
+                <div class="loading-shimmer" style="height: 80px;"></div>
+                <div class="loading-shimmer" style="height: 80px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== CONTACT ========== -->
+    <section class="section section-light" id="contact">
+        <div class="section-inner">
+            <div class="section-header animate-on-scroll">
+                <p class="section-label">Nous contacter</p>
+                <h2 class="section-title">Contact</h2>
+                <div class="section-sep"></div>
+            </div>
+            <p class="welcome-text animate-on-scroll" id="contactText">
+                Pour toute question, contactez-nous par email ou via nos réseaux sociaux.
+            </p>
+            <div style="text-align: center;" class="animate-on-scroll">
+                <a href="mailto:contact@sousloeildemelusine.fr" class="btn btn-primary" id="contactEmail">
+                    ✉️ Nous écrire
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer">
+        <div class="footer-inner">
+            <div>
+                <div class="footer-brand">Sous l'Œil de Mélusine</div>
+                <div class="footer-sub">Organisé par La Guilde · Foyer du Porteau · Poitiers</div>
+            </div>
+            <div class="footer-right" id="footerDate">16 & 17 mai 2026</div>
+        </div>
+    </footer>
+
+    <!-- ========== SCROLL TO TOP ========== -->
+    <button class="scroll-top" id="scrollTop" aria-label="Retour en haut">↑</button>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script>
+    (function() {
+        'use strict';
+
+        // ===========================================
+        // CONFIGURATION — À MODIFIER
+        // ===========================================
+        // 
+        // 1. Crée un Google Sheet avec les onglets suivants :
+        //    - config, programme, restauration, animations
+        // 2. Publie-le : Fichier → Partager → Publier sur le Web → Feuille entière → CSV
+        // 3. Copie l'ID du Google Sheet et colle-le ci-dessous :
+        //
+        const SHEET_ID = ''; // ← COLLE L'ID DE TON GOOGLE SHEET ICI
+        //
+        // Si SHEET_ID est vide, le site affiche les données de démo ci-dessous.
+        // ===========================================
+
+        // Données de démonstration (utilisées si pas de Google Sheet configuré)
+        const DEMO_DATA = {
+            config: {
+                titre_site: "Sous l'Œil de Mélusine",
+                sous_titre: "Convention de Jeu de Rôle",
+                dates: "16 & 17 mai 2026 — Poitiers",
+                lieu_complet: "Salle Gérard Gaschet · Du samedi 10h au dimanche 16h · Entrée gratuite",
+                lieu_nom: "Salle Gérard Gaschet",
+                lieu_adresse: "138 rue de la Grange Saint-Pierre, Poitiers",
+                dates_detail: "Sam. 16 mai 10h → Dim. 17 mai 16h",
+                tarif: "Entrée gratuite — Ouverte à tous",
+                bienvenue_titre: "Bienvenue à toutes et tous",
+                bienvenue_texte: "Sous l'Œil de Mélusine est organisée par <strong>la Guilde</strong>, section jeu de rôle de l'association du Foyer du Porteau. Que vous soyez joueur·euse aguerri·e ou curieux·euse de découvrir le JDR, vous êtes les bienvenu·es !",
+                restauration_intro: "Buvette et buffet disponibles sur place tout le week-end. Un repas chaud sera proposé le samedi soir — inscription recommandée.",
+                contact_texte: "Pour toute question, contactez-nous par email ou via nos réseaux sociaux.",
+                contact_email: "contact@sousloeildemelusine.fr",
+                lien_inscription: "#inscriptions",
+                image_hero: ""
+            },
+            programme: [
+                { creneau: "Samedi 10h-13h", jeu: "STRISCIA", mj: "Alex", systeme: "STRISCIA", description: "Cape et d'épée dans une Italie fantasmée", places: "5", statut: "Disponible" },
+                { creneau: "Samedi 10h-13h", jeu: "Cérèlthène — Monstres d'antan", mj: "Robin", systeme: "Cérèlthène", description: "Enquête dans un monde médiéval fantastique", places: "4", statut: "Disponible" },
+                { creneau: "Samedi 14h-17h", jeu: "Cérèlthène — Cosa Noarathe", mj: "Robin", systeme: "Cérèlthène", description: "Intrigue et politique dans les cités libres", places: "4", statut: "Complet" },
+                { creneau: "Samedi 14h-17h", jeu: "Étoiles ardentes", mj: "Julie", systeme: "Étoiles ardentes", description: "Space opera poétique et combats spatiaux", places: "5", statut: "Disponible" },
+                { creneau: "Samedi 21h-00h", jeu: "VAESEN", mj: "Marc", systeme: "VAESEN", description: "Horreur folklorique dans la Scandinavie du XIXème siècle", places: "4", statut: "Disponible" },
+                { creneau: "Dimanche 10h-13h", jeu: "Household", mj: "Olive", systeme: "Household", description: "Aventures miniatures dans une maison hantée", places: "5", statut: "Disponible" }
+            ],
+            restauration: [
+                { item: "Boissons fraîches", prix: "1,00 €", description: "Eau, jus de fruits, sodas", categorie: "Buvette" },
+                { item: "Boissons chaudes", prix: "0,50 €", description: "Café, thé, chocolat chaud", categorie: "Buvette" },
+                { item: "Gâteaux maison", prix: "1,50 €", description: "Pâtisseries faites par les bénévoles", categorie: "Buvette" },
+                { item: "Repas chaud samedi soir", prix: "8,00 €", description: "Menu à confirmer — inscription recommandée", categorie: "Repas" },
+                { item: "Sandwich", prix: "3,00 €", description: "Jambon-beurre ou végétarien", categorie: "Buffet" }
+            ],
+            animations: [
+                { nom: "Espace jeux de société", description: "Notre partenaire le Mipeul propose un espace jeu de société le samedi, avec des courtes parties en attendant le début du prochain créneau JDR.", horaire: "Samedi toute la journée", lieu: "Salle principale" },
+                { nom: "Jeu concours", description: "Un jeu concours gratuit permettant de gagner des lots à la fin de la convention. Récupérez votre bulletin en arrivant !", horaire: "Tout le week-end", lieu: "Accueil" },
+                { nom: "Initiation JDR", description: "Des tables d'initiation pour découvrir le jeu de rôle, ouvertes aux curieux·ses de tout âge.", horaire: "Samedi 14h-16h", lieu: "Salle annexe" }
+            ]
+        };
+
+        // ===========================================
+        // GOOGLE SHEETS FETCHER
+        // ===========================================
+        function getSheetURL(tabName) {
+            return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+        }
+
+        function fetchSheet(tabName) {
+            return new Promise((resolve, reject) => {
+                if (!SHEET_ID) {
+                    resolve(null); // Use demo data
+                    return;
+                }
+                Papa.parse(getSheetURL(tabName), {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => resolve(results.data),
+                    error: (err) => {
+                        console.warn(`Erreur chargement onglet "${tabName}":`, err);
+                        resolve(null);
+                    }
+                });
+            });
+        }
+
+        // Fetch config (key-value pairs)
+        function fetchConfig() {
+            return new Promise((resolve, reject) => {
+                if (!SHEET_ID) {
+                    resolve(null);
+                    return;
+                }
+                Papa.parse(getSheetURL('config'), {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        const config = {};
+                        results.data.forEach(row => {
+                            if (row.cle && row.valeur !== undefined) {
+                                config[row.cle.trim()] = row.valeur.trim();
+                            }
+                        });
+                        resolve(config);
+                    },
+                    error: () => resolve(null)
+                });
+            });
+        }
+
+        // ===========================================
+        // RENDERERS
+        // ===========================================
+
+        function renderConfig(config) {
+            const c = config || DEMO_DATA.config;
+
+            // Hero
+            const heroSubtitle = document.getElementById('heroSubtitle');
+            const heroDate = document.getElementById('heroDate');
+            const heroInfo = document.getElementById('heroInfo');
+            if (c.sous_titre) heroSubtitle.textContent = c.sous_titre;
+            if (c.dates) heroDate.textContent = c.dates;
+            if (c.lieu_complet) heroInfo.textContent = c.lieu_complet;
+            if (c.lien_inscription) document.getElementById('heroBtnPrimary').href = c.lien_inscription;
+
+            // Hero background image
+            if (c.image_hero) {
+                document.getElementById('heroBgImage').style.setProperty('--hero-bg-url', `url(${c.image_hero})`);
+            }
+
+            // Bienvenue
+            if (c.bienvenue_titre) document.getElementById('welcomeTitle').textContent = c.bienvenue_titre;
+            if (c.bienvenue_texte) document.getElementById('welcomeText').innerHTML = c.bienvenue_texte;
+
+            // Info cards
+            if (c.lieu_nom) document.getElementById('infoLieu').innerHTML = `${c.lieu_nom}<br>${c.lieu_adresse || ''}`;
+            if (c.dates_detail) document.getElementById('infoDates').innerHTML = c.dates_detail.replace(/\n/g, '<br>');
+            if (c.tarif) document.getElementById('infoTarif').innerHTML = c.tarif.replace(/\n/g, '<br>');
+
+            // Restauration
+            if (c.restauration_intro) document.getElementById('restaurationIntro').textContent = c.restauration_intro;
+
+            // Contact
+            if (c.contact_texte) document.getElementById('contactText').textContent = c.contact_texte;
+            if (c.contact_email) {
+                const btn = document.getElementById('contactEmail');
+                btn.href = `mailto:${c.contact_email}`;
+                btn.textContent = `✉️ ${c.contact_email}`;
+            }
+        }
+
+        function renderProgramme(data) {
+            const items = data || DEMO_DATA.programme;
+            const grid = document.getElementById('programmeGrid');
+            const tabsEl = document.getElementById('programmeTabs');
+
+            // Extract unique creneaux for tabs
+            const creneaux = [...new Set(items.map(i => i.creneau))];
+            
+            tabsEl.innerHTML = `<button class="tab active" data-filter="all">Tous</button>` +
+                creneaux.map(c => `<button class="tab" data-filter="${c}">${c}</button>`).join('');
+
+            function renderItems(filter) {
+                const filtered = filter === 'all' ? items : items.filter(i => i.creneau === filter);
+                grid.innerHTML = filtered.map(item => `
+                    <div class="creneau animate-on-scroll visible">
+                        <div class="creneau-time">${item.creneau || ''}</div>
+                        <div class="creneau-info">
+                            <h4>${item.jeu || ''}</h4>
+                            <div class="mj">MJ : ${item.mj || '—'}${item.systeme ? ` · ${item.systeme}` : ''}</div>
+                            <div class="desc">${item.description || ''}</div>
+                        </div>
+                        <div class="creneau-places ${(item.statut || '').toLowerCase() === 'complet' ? 'complet' : 'disponible'}">
+                            ${(item.statut || '').toLowerCase() === 'complet' ? 'Complet' : `${item.places || '?'} places`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderItems('all');
+
+            tabsEl.addEventListener('click', e => {
+                if (e.target.classList.contains('tab')) {
+                    tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    e.target.classList.add('active');
+                    renderItems(e.target.dataset.filter);
+                }
+            });
+        }
+
+        function renderRestauration(data) {
+            const items = data || DEMO_DATA.restauration;
+            const grid = document.getElementById('menuGrid');
+
+            grid.innerHTML = items.map(item => `
+                <div class="menu-item animate-on-scroll visible">
+                    ${item.categorie ? `<div class="menu-item-category">${item.categorie}</div>` : ''}
+                    <div class="menu-item-header">
+                        <div class="menu-item-name">${item.item || ''}</div>
+                        <div class="menu-item-price">${item.prix || ''}</div>
+                    </div>
+                    <div class="menu-item-desc">${item.description || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderAnimations(data) {
+            const items = data || DEMO_DATA.animations;
+            const container = document.getElementById('animationsGrid');
+
+            container.innerHTML = items.map(item => `
+                <div class="animation-card animate-on-scroll visible">
+                    <h4>${item.nom || ''}</h4>
+                    <div class="anim-time">📅 ${item.horaire || ''}${item.lieu ? ` · 📍 ${item.lieu}` : ''}</div>
+                    <div class="anim-desc">${item.description || ''}</div>
+                </div>
+            `).join('');
+        }
+
+        // ===========================================
+        // INIT — Load data and render
+        // ===========================================
+        async function init() {
+            // Fetch all data in parallel
+            const [config, programme, restauration, animations] = await Promise.all([
+                fetchConfig(),
+                fetchSheet('programme'),
+                fetchSheet('restauration'),
+                fetchSheet('animations')
+            ]);
+
+            renderConfig(config);
+            renderProgramme(programme);
+            renderRestauration(restauration);
+            renderAnimations(animations);
+
+            // Init scroll animations after render
+            initScrollAnimations();
+        }
+
+        // ===========================================
+        // UI INTERACTIONS
+        // ===========================================
+
+        // Navbar scroll effect
+        window.addEventListener('scroll', () => {
+            document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 50);
+            document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 500);
+        });
+
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY + 100;
+            sections.forEach(section => {
+                const top = section.offsetTop;
+                const height = section.offsetHeight;
+                const id = section.getAttribute('id');
+                const link = document.querySelector(`.nav-links a[href="#${id}"]`);
+                if (link) {
+                    if (scrollY >= top && scrollY < top + height) {
+                        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+                        link.classList.add('active');
+                    }
+                }
+            });
+        });
+
+        // Mobile menu toggle
+        document.getElementById('navToggle').addEventListener('click', function() {
+            this.classList.toggle('open');
+            document.getElementById('navLinks').classList.toggle('open');
+        });
+
+        // Close mobile menu on link click
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                document.getElementById('navToggle').classList.remove('open');
+                document.getElementById('navLinks').classList.remove('open');
+            });
+        });
+
+        // Scroll to top
+        document.getElementById('scrollTop').addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Scroll animations (Intersection Observer)
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, i) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+        }
+
+        // ===========================================
+        // GO!
+        // ===========================================
+        document.addEventListener('DOMContentLoaded', init);
+
+    })();
+    </script>
+
+</body>
+</html>
